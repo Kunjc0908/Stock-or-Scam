@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock or Scam? | Finance and Analytics Club IITK</title>
+<link rel="icon" type="image/jpeg" href="https://uploads.onecompiler.io/44w72yrcp/44w729mcd/download.jpg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  :root{
+    --navy-deep:#0a0724;
+    --navy:#120c3d;
+    --navy-soft:#1d1754;
+    --navy-line: rgba(255,255,255,0.12);
+    --teal:#00876d;
+    --teal-bright:#18b993;
+    --teal-dim: rgba(0,135,109,0.14);
+    --blue:#2993cf;
+    --blue-deep:#0b478f;
+    --paper:#f7f7fb;
+    --paper-2:#eceef4;
+    --ink:#161a24;
+    --ink-soft:#39414f;
+    --slate:#5b6472;
+    --red:#b23b3b;
+    --red-bright:#d1524d;
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Source Serif 4', Georgia, serif;
+    --font-ui:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', 'Courier New', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--navy-deep);
+    background-image: radial-gradient(ellipse at top, var(--navy-soft) 0%, var(--navy-deep) 55%);
+    color:var(--paper);
+    font-family:var(--font-body);
+    min-height:100vh;
+  }
+
+  a{ color:inherit; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- MARKET TICKER ---------- */
+  .ticker-wrap{
+    width:100%;
+    display:flex;
+    align-items:center;
+    background:#070517;
+    border-bottom:1px solid rgba(41,147,207,0.35);
+    overflow:hidden;
+  }
+  .market-status{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:0.14em;
+    color:var(--teal-bright);
+    padding:8px 16px;
+    border-right:1px solid rgba(255,255,255,0.08);
+    white-space:nowrap;
+  }
+  .status-dot{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--teal-bright);
+    animation:pulseDot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDot{
+    0%,100%{ box-shadow:0 0 0 0 rgba(24,185,147,0.55); }
+    50%{ box-shadow:0 0 0 5px rgba(24,185,147,0); }
+  }
+  .ticker-scroll{
+    flex:1 1 auto;
+    overflow:hidden;
+    white-space:nowrap;
+    padding:8px 0;
+  }
+  .ticker{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.02em;
+    animation:scrollTicker 48s linear infinite;
+    padding-left:100%;
+  }
+  .tick{ margin:0 22px; }
+  .tick-sym{ color:#7c8aa6; letter-spacing:0.07em; margin-right:9px; }
+  .tick-val{ color:#e9edf5; font-weight:500; margin-right:9px; }
+  .tick-chg.up{ color:var(--teal-bright); }
+  .tick-chg.down{ color:var(--red-bright); }
+  .ticker .sep{ color:#2b3151; margin:0 6px; }
+  @keyframes scrollTicker{
+    0%{ transform:translateX(0); }
+    100%{ transform:translateX(-100%); }
+  }
+
+  @media (max-width:560px){
+    .market-status span.status-label{ display:none; }
+    .market-status{ padding:8px 12px; }
+  }
+
+  /* ---------- HEADER / NAV ---------- */
+  .site-header{
+    position:sticky;
+    top:0;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:14px 28px;
+    background:rgba(10,7,36,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--navy-line);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:38px;
+    height:38px;
+    border-radius:9px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    box-shadow:0 2px 8px rgba(0,0,0,0.35);
+  }
+  .brand-mark img{ width:28px; height:28px; display:block; }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+  .brand-name{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:16.5px;
+    letter-spacing:0.01em;
+    color:var(--paper);
+  }
+  .brand-tag{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    letter-spacing:0.22em;
+    color:var(--blue);
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+  .site-nav{
+    display:flex;
+    align-items:center;
+    gap:26px;
+    font-family:var(--font-ui);
+    font-size:13.5px;
+    font-weight:500;
+  }
+  .site-nav a{
+    text-decoration:none;
+    color:#b7bfd1;
+    padding:6px 2px;
+    border-bottom:2px solid transparent;
+    transition:color 0.15s ease, border-color 0.15s ease;
+  }
+  .site-nav a:hover{ color:var(--paper); }
+  .site-nav a.active{ color:var(--paper); border-bottom-color:var(--teal-bright); }
+  .login-btn{
+    font-family:var(--font-ui);
+    font-weight:600;
+    font-size:13px;
+    text-decoration:none;
+    color:var(--paper);
+    border:1px solid rgba(255,255,255,0.28);
+    border-radius:5px;
+    padding:8px 16px;
+    white-space:nowrap;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .login-btn:hover{ background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.5); }
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--teal-bright);
+    outline-offset:2px;
+  }
+
+  @media (max-width:760px){
+    .site-nav{ display:none; }
+    .login-btn{ display:none; }
+    .site-header{ padding:12px 18px; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    padding:52px 20px 26px;
+    text-align:center;
+  }
+  .hero-chart{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    opacity:0.6;
+  }
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    max-width:720px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.28em;
+    color:var(--blue);
+    text-transform:uppercase;
+  }
+  .hero-inner h1{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-optical-sizing:auto;
+    font-size:clamp(2.5rem, 7vw, 4.3rem);
+    letter-spacing:-0.01em;
+    margin:10px 0 12px;
+    color:var(--paper);
+  }
+  .hero-inner h1 em{
+    font-style:normal;
+    color:var(--teal-bright);
+  }
+  .hero-sub{
+    font-family:var(--font-body);
+    font-style:italic;
+    font-size:15.5px;
+    line-height:1.55;
+    color:#c3cadb;
+    margin:0 auto;
+    max-width:560px;
+  }
+  .rule{
+    width:min(560px, 88%);
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--blue), transparent);
+    margin:26px auto 0;
+  }
+
+  /* ---------- SCOREBOARD ---------- */
+  .scoreboard{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:center;
+    justify-content:center;
+    margin:22px 0 4px;
+    font-family:var(--font-mono);
+  }
+  .score-chip{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(41,147,207,0.4);
+    border-radius:6px;
+    padding:9px 18px;
+    text-align:center;
+    min-width:92px;
+  }
+  .score-chip .label{
+    display:block;
+    font-size:9px;
+    letter-spacing:0.2em;
+    color:#8b96ad;
+    margin-bottom:4px;
+  }
+  .score-chip .value{
+    font-size:20px;
+    font-weight:600;
+    color:var(--teal-bright);
+    transition:transform 0.25s ease;
+  }
+  .score-chip .value.pulse{ animation:tick 0.4s ease; }
+  @keyframes tick{
+    0%{transform:scale(1);}
+    40%{transform:scale(1.28); color:#5fe0be;}
+    100%{transform:scale(1);}
+  }
+
+  /* ---------- MAIN / CASE FILE CARD ---------- */
+  main{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    padding:22px 18px 64px;
+  }
+  .brief-card{
+    background-color:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(11,71,143,0.055) 0px, rgba(11,71,143,0.055) 1px, transparent 1px, transparent 27px),
+      repeating-linear-gradient(90deg, rgba(11,71,143,0.055) 0px, rgba(11,71,143,0.055) 1px, transparent 1px, transparent 27px);
+    color:var(--ink-soft);
+    width:100%;
+    max-width:620px;
+    border-radius:8px;
+    padding:34px 34px 30px;
+    position:relative;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  .progress{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--blue-deep);
+    text-align:center;
+    margin-bottom:10px;
+    opacity:0.8;
+  }
+  .dateline{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.04em;
+    color:var(--blue-deep);
+    border-bottom:1px solid rgba(11,71,143,0.18);
+    padding-bottom:10px;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .dateline-left{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    flex-wrap:wrap;
+  }
+  .sym-badge{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    color:var(--teal);
+    background:var(--teal-dim);
+    border:1px solid rgba(0,135,109,0.4);
+    border-radius:3px;
+    padding:2px 8px;
+  }
+  .dateline .tag{
+    background:var(--navy);
+    color:var(--paper);
+    padding:2px 9px;
+    border-radius:3px;
+    font-size:10px;
+    letter-spacing:0.14em;
+  }
+  .headline{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(1.35rem, 3.4vw, 1.75rem);
+    line-height:1.28;
+    margin:0 0 18px;
+    color:var(--ink);
+  }
+  .prompt{
+    font-family:var(--font-ui);
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 16px;
+  }
+
+  .verdict-buttons{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .stamp-btn{
+    flex:1;
+    min-width:150px;
+    font-family:var(--font-ui);
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.05em;
+    padding:15px 10px;
+    background:transparent;
+    border-radius:6px;
+    cursor:pointer;
+    transition:transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .stamp-real{ border:2px solid var(--teal); color:var(--teal); }
+  .stamp-real:hover{ background:var(--teal); color:#fff; transform:translateY(-2px); }
+  .stamp-fake{ border:2px solid var(--red); color:var(--red); }
+  .stamp-fake:hover{ background:var(--red); color:#fff; transform:translateY(-2px); }
+  .stamp-btn:disabled{ cursor:default; opacity:0.4; transform:none !important; background:transparent !important; }
+
+  /* ---------- REVEAL / AUDIT SEAL ---------- */
+  .reveal{ position:relative; margin-top:6px; }
+  .stamp-overlay{
+    position:absolute;
+    top:-22px;
+    right:-8px;
+    width:112px;
+    height:112px;
+    border-radius:50%;
+    border:3px solid;
+    background:rgba(255,255,255,0.9);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-family:var(--font-ui);
+    transform:rotate(-13deg) scale(0.4);
+    opacity:0;
+    pointer-events:none;
+    animation:stampIn 0.45s cubic-bezier(.2,1.4,.4,1) 0.05s forwards;
+  }
+  .stamp-overlay::before{
+    content:'';
+    position:absolute;
+    inset:6px;
+    border-radius:50%;
+    border:1px solid currentColor;
+    opacity:0.45;
+  }
+  .stamp-overlay .s-line1{ font-size:14px; font-weight:800; letter-spacing:0.03em; line-height:1.15; }
+  .stamp-overlay .s-line2{ font-size:7.5px; letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; opacity:0.85; }
+  .stamp-overlay.real{ color:var(--teal); border-color:var(--teal); }
+  .stamp-overlay.fake{ color:var(--red); border-color:var(--red); }
+  @keyframes stampIn{
+    0%{ opacity:0; transform:rotate(-13deg) scale(1.7); }
+    60%{ opacity:1; transform:rotate(-13deg) scale(0.92); }
+    100%{ opacity:1; transform:rotate(-13deg) scale(1); }
+  }
+  .guess-note{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.04em;
+    margin:2px 0 12px;
+    padding:6px 10px;
+    border-radius:4px;
+    display:inline-block;
+  }
+  .guess-note.correct{ background:var(--teal-dim); color:var(--teal); border:1px solid var(--teal); }
+  .guess-note.wrong{ background:rgba(178,59,59,0.1); color:var(--red); border:1px solid var(--red); }
+
+  .explanation{
+    font-family:var(--font-body);
+    font-size:15.5px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+    padding-top:30px;
+  }
+  .lesson-box{
+    background:var(--teal-dim);
+    border-left:4px solid var(--teal);
+    padding:12px 16px;
+    margin-bottom:20px;
+    border-radius:0 4px 4px 0;
+  }
+  .lesson-label{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:0.2em;
+    color:var(--teal);
+    margin-bottom:5px;
+  }
+  .lesson-box p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink); }
+
+  .next-btn{
+    font-family:var(--font-ui);
+    font-weight:600;
+    font-size:13.5px;
+    letter-spacing:0.02em;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    border-radius:5px;
+    padding:12px 20px;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .next-btn:hover{ background:var(--navy-deep); }
+
+  /* ---------- END SCREEN ---------- */
+  .end-screen{
+    background:var(--paper);
+    color:var(--ink-soft);
+    width:100%;
+    max-width:620px;
+    border-radius:8px;
+    padding:40px 34px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  }
+  .end-screen .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.24em;
+    color:var(--blue-deep);
+  }
+  .end-screen h2{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(1.7rem, 5vw, 2.4rem);
+    margin:8px 0 4px;
+    color:var(--ink);
+  }
+  .end-screen .final-score{
+    font-family:var(--font-mono);
+    font-size:15px;
+    color:var(--blue-deep);
+    margin-bottom:18px;
+  }
+  .end-screen p.recap{
+    font-size:15.5px;
+    line-height:1.65;
+    max-width:480px;
+    margin:0 auto 26px;
+    color:var(--ink-soft);
+  }
+  .replay-btn{
+    font-family:var(--font-ui);
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.02em;
+    background:var(--blue-deep);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:14px 26px;
+    cursor:pointer;
+  }
+  .replay-btn:hover{ background:var(--navy); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    background:#070517;
+    border-top:1px solid var(--navy-line);
+    padding:36px 28px 30px;
+  }
+  .footer-inner{
+    max-width:960px;
+    margin:0 auto;
+  }
+  .footer-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .footer-brand .brand-mark{ width:30px; height:30px; border-radius:7px; }
+  .footer-brand .brand-mark img{ width:22px; height:22px; }
+  .footer-brand span{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--paper);
+  }
+  .disclosure{
+    font-family:var(--font-ui);
+    font-size:12px;
+    line-height:1.65;
+    color:#8b93a6;
+    max-width:760px;
+    margin:0 0 20px;
+  }
+  .footer-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    font-family:var(--font-ui);
+    font-size:12.5px;
+    margin-bottom:16px;
+  }
+  .footer-links a{ text-decoration:none; color:#a9b2c6; }
+  .footer-links a:hover{ color:var(--paper); }
+  .copyright{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    color:#5c6479;
+  }
+
+  @media (max-width:480px){
+    .brief-card, .end-screen{ padding:26px 20px 24px; }
+    .verdict-buttons{ flex-direction:column; }
+    .scoreboard{ gap:14px; }
+    .hero{ padding:38px 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="ticker-wrap">
+    <div class="market-status"><span class="status-dot"></span><span class="status-label">MARKETS OPEN</span></div>
+    <div class="ticker-scroll"><div class="ticker" id="tickerText"></div></div>
+  </div>
+
+  <header class="site-header">
+    <a href="#" class="brand">
+      <span class="brand-mark"><img src="https://uploads.onecompiler.io/44w72yrcp/44w729mcd/download.jpg" alt="Finance and Analytics Club IITK logo mark"></span>
+      <span class="brand-text">
+        <span class="brand-name">Finance and Analytics Club IITK</span>
+        <span class="brand-tag">Best SNT Club</span>
+      </span>
+    </a>
+  
+  </header>
+
+  <section class="hero">
+    <svg class="hero-chart" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true">
+      <g id="gridLines"></g>
+      <g id="candleGroup"></g>
+    </svg>
+    <div class="hero-inner">
+      <p class="eyebrow">Investor Education Desk — Interactive Briefing</p>
+      <h1>Stock <em>or</em> Scam?</h1>
+      <p class="hero-sub">Five entries pulled from the market archive some are documented history, while others are invented to sound just as plausible. Finance and Analytics Club IITK built this briefing to sharpen the instinct that separates investing from speculation.</p>
+      <div class="scoreboard">
+        <div class="score-chip">
+          <span class="label">SCORE</span>
+          <span class="value" id="scoreVal">0/0</span>
+        </div>
+        <div class="score-chip">
+          <span class="label">ACCURACY</span>
+          <span class="value" id="accuracyVal">0%</span>
+        </div>
+        <div class="score-chip">
+          <span class="label">STREAK</span>
+          <span class="value" id="streakVal">0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="rule"></div>
+
+  <main id="game">
+    <div id="gameArea">
+      <div class="progress" id="progressText"></div>
+      <div class="brief-card">
+        <div class="dateline">
+          <span class="dateline-left">
+            <span class="sym-badge" id="symBadge"></span>
+            <span id="datelineText"></span>
+          </span>
+          <span class="tag" id="categoryTag"></span>
+        </div>
+        <h2 class="headline" id="headlineText"></h2>
+        <p class="prompt">Real event, or fabricated for this game?</p>
+
+        <div class="verdict-buttons" id="verdictButtons">
+          <button class="stamp-btn stamp-real" id="btnReal">▲ STOCK</button>
+          <button class="stamp-btn stamp-fake" id="btnFake">▼ SCAM</button>
+        </div>
+
+        <div class="reveal" id="reveal" hidden>
+          <div class="stamp-overlay" id="stampOverlay"></div>
+          <div id="guessNote"></div>
+          <p class="explanation" id="explanationText"></p>
+          <div class="lesson-box">
+            <span class="lesson-label">THE LESSON</span>
+            <p id="lessonText"></p>
+          </div>
+          <button class="next-btn" id="nextBtn">Open Next File →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="end-screen" id="endScreen" hidden>
+      <div class="eyebrow">Final Edition</div>
+      <h2 id="endTitle"></h2>
+      <div class="final-score" id="endScore"></div>
+      <p class="recap" id="endRecap"></p>
+      <button class="replay-btn" id="replayBtn">RESTART?</button>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark"><img src="https://uploads.onecompiler.io/44w72yrcp/44w729mcd/download.jpg" alt="Finance and Analytics Club IITK logo mark"></span>
+        <span>Finance and Analytics Club IITK</span>
+      </div>
+      <!-- This will fix the ERR_BLOCKED_BY_RESPONSE error -->
+<a href="https://www.youtube.com/watch?v=xvFZjo5PgG0" target="_blank">Wanna solve more? Click here</a>
+  </footer>
+
+<script>
+const EVENTS = [
+  {
+    dateline:"AMSTERDAM — FEBRUARY 1637",
+    category:"MANIA",
+    symbol:"TULP",
+    headline:"A single flower bulb changes hands for more than a skilled craftsman earns in ten years — some bulbs reportedly traded for the price of a canal house.",
+    isReal:true,
+    explanation:"This is Tulip Mania, one of the earliest recorded speculative bubbles. Rare tulip bulbs became a status symbol in the Dutch Golden Age, and futures contracts let people trade bulbs they'd never even see. Prices rose purely on the belief that someone else would pay more tomorrow — until confidence broke in February 1637 and the market for bulbs collapsed within weeks.",
+    lesson:"When an asset's price is justified only by 'it'll be worth more later,' that's speculation, not investing. The moment new buyers stop showing up, the whole structure has nothing left to stand on."
+  },
+  {
+    dateline:"LONDON — SUMMER 1720",
+    category:"HYPE",
+    symbol:"SSEA",
+    headline:"Shares in a company with a trade monopoly it can barely use rise sixfold in months — buyers include one of the most famous scientists in history.",
+    isReal:true,
+    explanation:"The South Sea Company was granted a monopoly on trade with South America that never delivered meaningfully profitable business. Stock was pumped through insider promotion and political connections rather than earnings, and it crashed the same year it peaked. Isaac Newton was among the ruined investors, reportedly losing a fortune and later remarking that he could calculate the motion of the planets but not the madness of people.",
+    lesson:"A great story and a rising chart are not the same as a real business. If you can't explain where the profit is actually coming from, you're betting on the crowd, not the company."
+  },
+  {
+    dateline:"NEW YORK — JANUARY 2021",
+    category:"SQUEEZE",
+    symbol:"GME",
+    headline:"A struggling video-game retailer's stock rockets over 1,600% in under three weeks, coordinated almost entirely on an internet forum.",
+    isReal:true,
+    explanation:"This is the GameStop short squeeze. Large hedge funds had bet heavily against GameStop's stock (shorting it), and retail traders organizing on Reddit's r/WallStreetBets bought in en masse, driving the price up so sharply that short-sellers were forced to buy back shares at a loss, pushing it even higher — from around $20 to an intraday peak near $483.",
+    lesson:"Crowds can genuinely move markets in the short term, real money changed hands both ways. But piling in because a chart is going vertical is a bet on momentum, not on the value of what you're buying."
+  },
+  {
+    dateline:"CHICAGO — JUNE 2007",
+    category:"SPECULATION",
+    symbol:"CLD7",
+    headline:"A commodities exchange briefly lets investors buy futures contracts on individual clouds drifting over Kansas farmland, priced against expected rainfall.",
+    isReal:false,
+    explanation:"Fabricated. There's no such thing as an exchange-listed 'cloud future' tied to individual clouds. Real weather derivatives exist (contracts tied to temperature or rainfall indexes), but nothing resembling this specific, whimsical version has ever existed.",
+    lesson:"Real financial products can sound almost as strange as fake ones, which is exactly what makes headlines like this so easy to fall for either way. When something sounds too odd to check, that's precisely when you should check it."
+  },
+  {
+    dateline:"PARIS — SUMMER 1858",
+    category:"SPECULATION",
+    symbol:"LUNE",
+    headline:"A company sells tradeable 'ownership certificates' in the moonlight reflecting off the Seine, and for one glittering month it becomes the most heavily traded stock on the Paris exchange.",
+    isReal:false,
+    explanation:"This one's fabricated. No such 'moonlight securities' ever traded in 19th-century Paris, there's no company, no exchange listing, no historical record of it. It was written to sound just plausible enough next to Tulip Mania and the South Sea Bubble.",
+    lesson:"Good instinct to pause on this one. The fact that a fake asset class can sound almost believable is exactly why real speculative bubbles work, a compelling story is often all a market needs to get moving."
+  }
+];
+
+let order = [];
+let idx = 0;
+let score = 0;
+let streak = 0;
+let answered = 0;
+
+const marketTicks = [
+  {sym:'S&P 500', val:'6,142.87', chg:'+0.42%', up:true},
+  {sym:'NASDAQ', val:'20,884.31', chg:'+0.71%', up:true},
+  {sym:'DOW JONES', val:'44,911.52', chg:'-0.18%', up:false},
+  {sym:'10Y YIELD', val:'4.21%', chg:'+0.03', up:true},
+  {sym:'GOLD', val:'2,614.80', chg:'-0.26%', up:false},
+  {sym:'WTI CRUDE', val:'68.42', chg:'+1.12%', up:true},
+  {sym:'BTC/USD', val:'71,204', chg:'+2.36%', up:true},
+  {sym:'VIX', val:'14.62', chg:'-3.10%', up:false},
+  {sym:'EUR/USD', val:'1.0862', chg:'+0.09%', up:true},
+  {sym:'FTSE 100', val:'8,352.11', chg:'+0.24%', up:true}
+];
+
+function buildTicker(){
+  const t = document.getElementById('tickerText');
+  const items = marketTicks.map(m =>
+    '<span class="tick"><span class="tick-sym">' + m.sym + '</span>' +
+    '<span class="tick-val">' + m.val + '</span>' +
+    '<span class="tick-chg ' + (m.up ? 'up' : 'down') + '">' + (m.up ? '&#9650; ' : '&#9660; ') + m.chg + '</span></span>'
+  ).join('<span class="sep">&#8226;</span>');
+  t.innerHTML = items + '<span class="sep">&#8226;</span>' + items;
+}
+
+function buildGrid(){
+  const g = document.getElementById('gridLines');
+  let html = '';
+  for(let y = 20; y < 320; y += 40){
+    html += '<line x1="0" y1="' + y + '" x2="1200" y2="' + y + '" stroke="rgba(255,255,255,0.045)" stroke-width="1"/>';
+  }
+  g.innerHTML = html;
+}
+
+function buildCandles(){
+  const g = document.getElementById('candleGroup');
+  const n = 42;
+  const w = 1200 / n;
+  const bodyW = w * 0.55;
+  let price = 95;
+  let seed = 11;
+  function rand(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  const toY = p => 300 - (p / 240) * 260;
+  let html = '';
+  for(let i = 0; i < n; i++){
+    const open = price;
+    const drift = 1.7;
+    const delta = (rand() - 0.42) * 14 + drift;
+    let close = open + delta;
+    if(close < 25) close = 25 + rand() * 10;
+    if(close > 235) close = 235 - rand() * 10;
+    const high = Math.max(open, close) + rand() * 6;
+    const low = Math.min(open, close) - rand() * 6;
+    const up = close >= open;
+    const color = up ? '#18b993' : '#d1524d';
+    const x = i * w + w * 0.22;
+    const yOpen = toY(open), yClose = toY(close), yHigh = toY(high), yLow = toY(low);
+    const bodyTop = Math.min(yOpen, yClose);
+    const bodyH = Math.max(Math.abs(yClose - yOpen), 2);
+    html += '<line x1="' + (x + bodyW/2) + '" y1="' + yHigh + '" x2="' + (x + bodyW/2) + '" y2="' + yLow + '" stroke="' + color + '" stroke-width="1.5" opacity="0.85"/>';
+    html += '<rect x="' + x + '" y="' + bodyTop + '" width="' + bodyW + '" height="' + bodyH + '" fill="' + color + '" opacity="0.85" rx="1"/>';
+    price = close;
+  }
+  g.innerHTML = html;
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startGame(){
+  order = shuffle(EVENTS.map((_,i)=>i));
+  idx = 0; score = 0; streak = 0; answered = 0;
+  document.getElementById('endScreen').hidden = true;
+  document.getElementById('gameArea').style.display = '';
+  updateScoreboard(false);
+  renderCard();
+}
+
+function updateScoreboard(pulse){
+  const sv = document.getElementById('scoreVal');
+  const av = document.getElementById('accuracyVal');
+  const stv = document.getElementById('streakVal');
+  sv.textContent = score + '/' + answered;
+  av.textContent = (answered ? Math.round((score/answered)*100) : 0) + '%';
+  stv.textContent = streak;
+  if(pulse){
+    sv.classList.remove('pulse'); void sv.offsetWidth; sv.classList.add('pulse');
+    av.classList.remove('pulse'); void av.offsetWidth; av.classList.add('pulse');
+    stv.classList.remove('pulse'); void stv.offsetWidth; stv.classList.add('pulse');
+  }
+}
+
+function renderCard(){
+  const ev = EVENTS[order[idx]];
+  document.getElementById('progressText').textContent = 'FILE ' + (idx+1) + ' OF ' + EVENTS.length;
+  document.getElementById('symBadge').textContent = '$' + ev.symbol;
+  document.getElementById('datelineText').textContent = ev.dateline;
+  document.getElementById('categoryTag').textContent = ev.category;
+  document.getElementById('headlineText').textContent = ev.headline;
+  document.getElementById('reveal').hidden = true;
+  document.getElementById('btnReal').disabled = false;
+  document.getElementById('btnFake').disabled = false;
+  document.getElementById('stampOverlay').className = 'stamp-overlay';
+  document.getElementById('stampOverlay').innerHTML = '';
+}
+
+function handleGuess(guessReal){
+  const ev = EVENTS[order[idx]];
+  const correct = (guessReal === ev.isReal);
+  answered++;
+  if(correct){ score++; streak++; } else { streak = 0; }
+  updateScoreboard(true);
+
+  document.getElementById('btnReal').disabled = true;
+  document.getElementById('btnFake').disabled = true;
+
+  const overlay = document.getElementById('stampOverlay');
+  overlay.className = 'stamp-overlay ' + (ev.isReal ? 'real' : 'fake');
+  overlay.innerHTML = ev.isReal
+    ? '<span class="s-line1">CONFIRMED</span><span class="s-line2">Matches record</span>'
+    : '<span class="s-line1">EXCEPTION</span><span class="s-line2">No record found</span>';
+
+  const note = document.getElementById('guessNote');
+  note.innerHTML = '<span class="guess-note ' + (correct ? 'correct' : 'wrong') + '">' +
+    (correct ? 'Correct call.' : 'Not this time.') + '</span>';
+
+  document.getElementById('explanationText').textContent = ev.explanation;
+  document.getElementById('lessonText').textContent = ev.lesson;
+  document.getElementById('reveal').hidden = false;
+}
+
+function nextCard(){
+  idx++;
+  if(idx >= EVENTS.length){ showEnd(); return; }
+  renderCard();
+}
+
+function showEnd(){
+  document.getElementById('gameArea').style.display = 'none';
+  const pct = score / EVENTS.length;
+  let title, recap;
+  if(pct >= 0.85){
+    title = 'MARKET HISTORIAN';
+    recap = "You separated real speculative history from fiction almost every time. That instinct, asking what's actually backing a price before believing the story, is the difference between investing and gambling on a narrative.";
+  } else if(pct >= 0.6){
+    title = 'SEASONED SKEPTIC';
+    recap = "You caught most of it. A few fabricated 'events' still slipped through, which is exactly how real bubbles work too: a plausible story plus rising prices is often enough to suspend disbelief.";
+  } else if(pct >= 0.4){
+    title = 'CAUTIOUSLY CURIOUS';
+    recap = "You're about at chance. Notice which ones fooled you, usually the ones with a good story and a specific detail attached. That's the same pull that drives real speculative buying.";
+  } else {
+    title = 'FOMO ROOKIE';
+    recap = "A lot of these read as believable, real or not, which is worth sitting with. The actual lesson underneath every card here: buying because everyone else is buying, or because a story sounds convincing, is speculation, not investing.";
+  }
+  document.getElementById('endTitle').textContent = title;
+  document.getElementById('endScore').textContent = 'FINAL SCORE — ' + score + ' OF ' + EVENTS.length + ' CORRECT';
+  document.getElementById('endRecap').textContent = recap;
+  document.getElementById('endScreen').hidden = false;
+}
+
+document.getElementById('btnReal').addEventListener('click', ()=>handleGuess(true));
+document.getElementById('btnFake').addEventListener('click', ()=>handleGuess(false));
+document.getElementById('nextBtn').addEventListener('click', nextCard);
+document.getElementById('replayBtn').addEventListener('click', startGame);
+
+buildTicker();
+buildGrid();
+buildCandles();
+startGame();
+</script>
+</body>
+</html>
